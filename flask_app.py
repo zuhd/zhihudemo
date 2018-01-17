@@ -43,6 +43,53 @@ def get_question_list(question, trim_space=False):
         question_list = question.split(' ')
     return question_list
 
+@app.route('/api/tip/<string:tip>', methods=['GET'])
+def get_tip(tip):
+    data = xlrd.open_workbook('20171013.xlsx')
+    table = data.sheet_by_name('questions')
+    nrows = table.nrows
+    split_list = get_question_list(tip, True)
+    question_list = []
+    for v in split_list:
+        question_list_genertor = jieba.cut(v, cut_all=False)
+        v_list = list(question_list_genertor)
+        question_list = question_list + v_list
+    rate = 0.0
+    index = -1
+    tip_list = []
+    for i in range(nrows):
+        seg_list_generator = jieba.cut(table.cell(i, 4).value, cut_all=False)
+        seg_list = list(seg_list_generator)
+        union_set = set(question_list).union(set(seg_list))
+        union_list = list(union_set)
+        intersection_list = list(union_set ^ (set(question_list)^set(seg_list)))
+        question_list_len = len(question_list)
+        union_list_len = len(union_list)
+        intersection_list_len = len(intersection_list)
+        if intersection_list_len * 100 >= question_list_len * 30:
+            temp_dict = {
+                         'question': table.cell(index, 4).value,
+                         'answer': table.cell(index, 5).value
+                        }
+            tip_list.append(temp_dict)
+
+    if len(tip_list) > 0:
+        obj = dict(ok=True, code=1001, msg=u'查询成功', data=tip_list)
+        return json.dumps(obj, ensure_ascii=False)
+    else:
+        obj = {
+            'ok': True,
+            'code': 1004,
+            'msg': u'查询失败',
+            'data': [
+                {
+                    'question': u'not found',
+                    'answer': u'not found'
+                }
+            ]
+        }
+        return json.dumps(obj, ensure_ascii=False)
+
 
 
 @app.route('/api/question/<string:question>', methods=['GET'])
