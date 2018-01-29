@@ -1,0 +1,7 @@
+pip install flask
+pip install jieba
+pip install pymysql
+pip install redis
+pip install virtualenv
+pip install uwsgi
+pip install xlrd
