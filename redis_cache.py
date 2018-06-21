@@ -11,13 +11,14 @@ class Redis:
 
     # 将内存数据二进制通过序列号转为文本流，再存入redis
     @staticmethod
-    def set_data(r, key, data, ex=None):
-        r.set(pickle.dumps(key), pickle.dumps(data), ex)
+    def set_data(r, name, key, data, ex=None):
+        r.hset(name, pickle.dumps(key), pickle.dumps(data))
+        r.expire(name, ex)
 
     # 将文本流从redis中读取并反序列化，返回返回
     @staticmethod
-    def get_data(r, key):
-        data = r.get(pickle.dumps(key))
+    def get_data(r, name, key):
+        data = r.hget(name, pickle.dumps(key))
         if data is None:
             return None
 
